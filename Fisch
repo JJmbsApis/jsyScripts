@@ -1,0 +1,371 @@
+local Player = game.Players.LocalPlayer
+
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local Window = OrionLib:MakeWindow({Name = "Jay's Hub - Fisch", HidePremium = false, SaveConfig = false, ConfigFolder = "OrionTest", IntroEnabled = true, IntroText = "Jay's Hub"})
+
+-- Variáveis --
+getgenv().autoFarmNR = false
+getgenv().autoFarmR = false
+getgenv().rod = nil
+getgenv().c100 = false
+
+-- Functions --
+local TweenService = game:GetService("TweenService")
+
+function moveCharacter(character, targetPosition, duration)
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    local tweenInfo = TweenInfo.new(duration or 0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+    local tween = TweenService:Create(humanoidRootPart, tweenInfo, {CFrame = targetPosition})
+    tween:Play()
+    return tween
+end
+
+function simulateClick()
+            local Click = game:GetService("VirtualUser")
+            Click:CaptureController() 
+            Click:ClickButton1(Vector2.new(100, 100))
+end
+function checkRods(container)
+  task.spawn(function()
+    for _, v in pairs(container:GetChildren()) do
+      if v:IsA("Tool") and string.find(v.Name, "Rod") or string.find(v.Name, "Sovereign") then
+        getgenv().rod = v
+      end
+    end
+  end
+  )
+end
+
+function cast(rod)
+  rod.events.cast:FireServer(100, 1)
+end
+
+function reelFunc2()
+                    local reel = Player.PlayerGui:WaitForChild("reel")
+                    if reel then
+                        local PBar = reel:FindFirstChild("bar"):FindFirstChild("playerbar")
+                        if PBar then
+                            PBar.Size = UDim2.new(1, 0, 1.3, 0)
+                        end
+                    end
+end
+function reelFunc()
+while task.wait(.1) do
+if not getgenv().autoFarmNR then break end
+local args = {
+    [1] = 100,
+    [2] = false
+}
+game:GetService("ReplicatedStorage"):FindFirstChild("events"):FindFirstChild("reelfinished"):FireServer(unpack(args))
+end
+end
+
+-- Tabs
+local Main = Window:MakeTab({
+  Name = "Main",
+  Icon = "rbxassetid://4483345998",
+  PremiumOnly = false
+})
+local Teleport = Window:MakeTab({
+  Name = "Teleport",
+  Icon = "rbxassetid://4483345998",
+  PremiumOnly = false
+})
+ 
+ 
+ -- Main
+ Main:AddSection({
+	Name = "Auto-farm",
+})
+
+Main:AddToggle({
+    Name = "Autofarm (non risk)",
+    Default = false,
+    Callback = function(Value)
+        getgenv().autoFarmNR = Value
+
+        -- Verificando as varas
+        if Value then
+            checkRods(Player.Character)
+            checkRods(Player.Backpack)
+        end
+
+        -- Verificando se o personagem está com a vara equipada e função principal
+        if Value then
+            if getgenv().rod.Parent ~= Player.Character then
+                getgenv().autoFarmNR = false
+            else
+                local Orion = game:GetService("CoreGui").Orion
+                Orion.Enabled = false
+
+                while getgenv().autoFarmNR do
+                    if not getgenv().autoFarmNR then break end
+                    cast(getgenv().rod)
+                    task.wait(.7)
+                   local shakeUI
+                   local shakeButton
+                   local safezone
+                    while getgenv().rod.values.lure.Value ~= 100 do
+                        shakeUI = Player.PlayerGui:FindFirstChild("shakeui")
+                        task.wait(.001)
+                        if not getgenv().autoFarmNR then break end
+                        if getgenv().rod.values.lure.Value == 100 then break end
+                        if shakeUI then
+                            safezone = shakeUI:FindFirstChild("safezone")
+                            if safezone then
+                            safezone.Size = UDim2.new(8, 0, 8, 0)
+                            shakeButton = safezone:FindFirstChild("button")
+                            if shakeButton then
+                                shakeButton.Transparency = 1
+                                shakeButton.Size = UDim2.new(8, 0, 8, 0)
+                                simulateClick()
+                            end
+                            end
+                        end
+                    end
+                    reelFunc2()
+                    task.wait(3)
+                end
+            end
+        end
+    end
+})
+
+Main:AddToggle({
+    Name = "Autofarm (risk)",
+    Default = false,
+    Callback = function(Value)
+        getgenv().autoFarmNR = Value
+
+        -- Verificando as varas
+        if Value then
+            checkRods(Player.Character)
+            checkRods(Player.Backpack)
+        end
+
+        -- Verificando se o personagem está com a vara equipada e função principal
+        if Value then
+            if getgenv().rod.Parent ~= Player.Character then
+                getgenv().autoFarmNR = false
+            else
+                local Orion = game:GetService("CoreGui").Orion
+                Orion.Enabled = false
+
+                while getgenv().autoFarmNR do
+                   if not getgenv().autoFarmNR then break end
+                   cast(getgenv().rod)
+                   task.wait(.7)
+                   local shakeUI
+                   local shakeButton
+                   local safezone
+                    while getgenv().rod.values.lure.Value ~= 100 do
+                        shakeUI = Player.PlayerGui:FindFirstChild("shakeui")
+                        task.wait(.001)
+                        if not getgenv().autoFarmNR then break end
+                        if getgenv().rod.values.lure.Value == 100 then break end
+                        if shakeUI then
+                            safezone = shakeUI:FindFirstChild("safezone")
+                            if safezone then
+                            safezone.Size = UDim2.new(8, 0, 8, 0)
+                            shakeButton = safezone:FindFirstChild("button")
+                            if shakeButton then
+                                shakeButton.Transparency = 1
+                                shakeButton.Size = UDim2.new(8, 0, 8, 0)
+                                simulateClick()
+                            end
+                            end
+                        end
+                    end
+                    reelFunc2()
+                    reelFunc()
+                    task.wait(3)
+                end
+            end
+        end
+    end
+})
+Main:AddSection({
+	Name = "Sell",
+})
+
+Main:AddButton({
+	Name = "Sell All",
+	Callback = function()
+	local initialPosition = Player.Character.PrimaryPart.CFrame
+	local targetPosition = CFrame.new(Vector3.new(463, 150, 229))
+	local character = Player.Character or Player.CharacterAdded:Wait()
+    moveCharacter(character, targetPosition, .1)
+    task.wait(.5)
+	workspace.world.npcs:WaitForChild("Marc Merchant").merchant.sellall:InvokeServer()
+	task.wait(.5)
+	moveCharacter(character, initialPosition, .1)
+end})
+Main:AddButton({
+	Name = "Sell in hand",
+	Callback = function()
+	local initialPosition = Player.Character.PrimaryPart.CFrame
+	local targetPosition = CFrame.new(Vector3.new(463, 150, 229))
+	local character = Player.Character or Player.CharacterAdded:Wait()
+    moveCharacter(character, targetPosition, .1)
+    task.wait(.5)
+	workspace.world.npcs:WaitForChild("Marc Merchant").merchant.sell:InvokeServer()
+	task.wait(.5)
+	moveCharacter(character, initialPosition, .1)
+end})
+
+Main:AddSection({
+	Name = "Buy",
+})
+
+Main:AddButton({
+	Name = "Buy Enchant Relic",
+	Callback = function()
+	local initialPosition = Player.Character.PrimaryPart.CFrame
+	local targetPosition = CFrame.new(Vector3.new(-1145, 235, -1100))
+	local character = Player.Character or Player.CharacterAdded:Wait()
+    moveCharacter(character, targetPosition, .1)
+    task.wait(.5)
+	workspace:WaitForChild("world"):WaitForChild("npcs"):WaitForChild("Merlin"):WaitForChild("Merlin"):WaitForChild("power"):InvokeServer()
+	task.wait(.5)
+	moveCharacter(character, initialPosition, .1)
+end})
+Main:AddButton({
+	Name = "Buy Luck Boost",
+	Callback = function()
+	local initialPosition = Player.Character.PrimaryPart.CFrame
+	local targetPosition = CFrame.new(Vector3.new(-1145, 235, -1100))
+	local character = Player.Character or Player.CharacterAdded:Wait()
+    moveCharacter(character, targetPosition, .1)
+    task.wait(.5)
+	workspace:WaitForChild("world"):WaitForChild("npcs"):WaitForChild("Merlin"):WaitForChild("Merlin"):WaitForChild("luck"):InvokeServer()
+	task.wait(.5)
+	moveCharacter(character, initialPosition, .1)
+end})	
+Main:AddButton({
+	Name = "Buy Sundial Totem",
+	Callback = function()
+	local targetPosition = CFrame.new(Vector3.new(-1143, 134, -1077))
+	local character = Player.Character or Player.CharacterAdded:Wait()
+    moveCharacter(character, targetPosition, .1)
+end})
+Main:AddButton({
+	Name = "Buy Aurora Totem",
+	Callback = function()
+	local targetPosition = CFrame.new(Vector3.new(-1813, -139, -3280))
+	local character = Player.Character or Player.CharacterAdded:Wait()
+    moveCharacter(character, targetPosition, .1)
+end})
+
+	-- Teleports
+Teleport:AddSection({
+  Name = "Teleports"
+})
+
+
+Teleport:AddDropdown({
+    Name = "Teleport Islands",
+    Default = "None",
+    Options = {
+        "None",
+        "Desolate Deep",
+        "Forsaken Shores",
+        "Gamma Grotto",
+        "Keepers Altar",
+        "Moosewood",
+        "Mushgrove Swamp",
+        "Roslit Bay",
+        "Snowcap Island",
+        "Statue Of Sovereignty",
+        "Sunstone Island",
+        "Terrapin Island",
+        "The Depths",
+        "Vertigo",
+        "Ancient Isles",
+        "Ancient Archives"
+    },
+    Callback = function(selectedLocation)
+        local tabletps = {
+            ["None"] = nil,
+            ["Desolate Deep"] = Vector3.new(-1657, -213, -2854),
+            ["Forsaken Shores"] = Vector3.new(-2487, 143, 1557),
+            ["Gamma Grotto"] = Vector3.new(2241, -803, 1042),
+            ["Keepers Altar"] = Vector3.new(1306, -804, -198),
+            ["Moosewood"] = Vector3.new(389, 135, 241),
+            ["Mushgrove Swamp"] = Vector3.new(2433, 137, -682),
+            ["Roslit Bay"] = Vector3.new(-1463, 142, 714),
+            ["Snowcap Island"] = Vector3.new(2692, 156, 2404),
+            ["Statue Of Sovereignty"] = Vector3.new(20, 151, -1025),
+            ["Sunstone Island"] = Vector3.new(-1145, 235, -1100),
+            ["Terrapin Island"] = Vector3.new(-164, 157, 1934),
+            ["The Depths"] = Vector3.new(952, -711, 1233),
+            ["Vertigo"] = Vector3.new(-114, -514, 1072),
+            ["Ancient Isles"] = Vector3.new(6072, 196, 297),
+            ["Ancient Archives"] = Vector3.new(-3162, -746, 1699),
+        }
+
+        if selectedLocation ~= "None" then
+        local targetPosition = CFrame.new(tabletps[selectedLocation])
+            local character = Player.Character or Player.CharacterAdded:Wait()
+            moveCharacter(character, targetPosition, .1)
+        end
+        end
+})
+
+Teleport:AddDropdown({
+    Name = "Teleport Spots",
+    Default = "None",
+    Options = {
+        "None",
+        "The Depths Spot",
+        "Ancient Isles Spot",
+    },
+    Callback = function(selectedLocation)
+        local tabletps = {
+            ["None"] = nil,
+            ["The Depths Spot"] = Vector3.new(525, -733, 1034),
+            ["Ancient Isles Spot"] = Vector3.new(5582, 135, -55)
+        }
+
+        if selectedLocation ~= "None" then
+        local targetPosition = CFrame.new(tabletps[selectedLocation])
+            local character = Player.Character or Player.CharacterAdded:Wait()
+            moveCharacter(character, targetPosition, .1)
+        end
+        end
+})
+
+
+OrionLib:Init()
+
+local CoreGui = game:GetService("CoreGui") do
+local Orion = CoreGui.Orion
+
+local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "ToggleOrion"
+    ScreenGui.Parent = CoreGui
+    ScreenGui.DisplayOrder = math.huge
+
+    local screenSize = workspace.CurrentCamera.ViewportSize
+    local smallerDimension = math.min(screenSize.X, screenSize.Y)
+    local scaleFactor = smallerDimension / screenSize.X
+
+    local Button = Instance.new("ImageButton")
+    Button.Name = "ToggleButton"
+    Button.Size = UDim2.new(0, smallerDimension * 0.15, 0, smallerDimension * 0.15)
+    Button.Position = UDim2.new(1, -110, 0, 10)
+    Button.AnchorPoint = Vector2.new(1, 0)
+    Button.BackgroundColor3 = Color3.fromRGB(95, 2, 31)
+    Button.Image = "rbxassetid://133430444968447"
+    Button.Parent = ScreenGui
+    Button.Draggable = true
+    Button.ZIndex = math.huge
+
+    Button.MouseButton1Click:Connect(function()
+        print("BotÃ£o clicado!")
+        if Orion then
+            Orion.Enabled = not Orion.Enabled
+        end
+    end)
+end
+game:GetService("CoreGui").Orion:GetChildren()[2].TopBar:GetChildren()[3]:Destroy()
